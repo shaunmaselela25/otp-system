@@ -33,7 +33,7 @@ function cleanOldRequests(user, now) {
 
 // Helper function to clean up old OTP history entries after 24 hours
 function cleanOldOtpHistory(user, now) {
-    user.history = user.history.filter(
+  user.previousOtps = user.previousOtps.filter(
         (entry) => now - entry.timestamp < TWENTY_FOUR_HOURS_MS
     )
 }
@@ -104,7 +104,7 @@ function requestOtp(email) {
 
     user.resendCount += 1;
     user.expiresAt =
-      now + EXPIRY_SECONDS * 1000;
+      now + OTP_EXPIRATION_SECONDS * 1000;
 
     user.used = false;
 
@@ -120,7 +120,7 @@ function requestOtp(email) {
   user.otp = otp;
   user.createdAt = now;
   user.expiresAt =
-    now + EXPIRY_SECONDS * 1000;
+    now + OTP_EXPIRATION_SECONDS * 1000;
 
   user.resendCount = 0;
   user.used = false;
