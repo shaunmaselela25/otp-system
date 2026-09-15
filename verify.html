@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verify OTP</title>
+  <style>
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #eef2f7; color: #172033; font-family: Arial, sans-serif; }
+    main { width: min(100%, 420px); padding: 32px; background: #fff; border: 1px solid #d8e0eb; border-radius: 10px; }
+    h1 { margin-top: 0; }
+    label { display: block; margin: 18px 0 8px; font-weight: 700; }
+    input, button { width: 100%; min-height: 44px; box-sizing: border-box; border-radius: 6px; font: inherit; }
+    input { padding: 0 12px; border: 1px solid #aeb9c9; }
+    button { margin-top: 18px; border: 0; background: #2367c5; color: white; font-weight: 700; cursor: pointer; }
+    #message { min-height: 24px; margin-top: 16px; }
+    a { display: block; margin-top: 20px; text-align: center; color: #2367c5; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Verify OTP</h1>
+    <form id="verify-form">
+      <label for="email">Email address</label>
+      <input id="email" type="email" required>
+      <label for="otp">Six-digit OTP</label>
+      <input id="otp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required>
+      <button type="submit">Verify OTP</button>
+    </form>
+    <p id="message" role="status" aria-live="polite"></p>
+    <a href="/">Back to send OTP</a>
+  </main>
+  <script>
+    document.querySelector('#verify-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const message = document.querySelector('#message');
+      const email = document.querySelector('#email').value.trim();
+      const otp = document.querySelector('#otp').value.trim();
+      try {
+        const response = await fetch('/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, otp })
+        });
+        const data = await response.json().catch(() => ({}));
+        message.textContent = response.ok ? 'OTP verified successfully.' : (data.reason || data.error || 'Verification failed.');
+      } catch (error) {
+        message.textContent = 'Network error. Check that the server is running and try again.';
+      }
+    });
+  </script>
+</body>
+</html>

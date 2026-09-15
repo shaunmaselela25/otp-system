@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Send OTP</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Arial, sans-serif;
+      background: #eef2f7;
+      color: #172033;
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    main {
+      width: min(100%, 420px);
+      padding: 32px;
+      background: #fff;
+      border: 1px solid #d8e0eb;
+      border-radius: 10px;
+      box-shadow: 0 12px 32px rgba(27, 45, 72, .1);
+    }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    p { color: #596579; line-height: 1.5; }
+    label { display: block; margin: 24px 0 8px; font-weight: 700; }
+    input, button {
+      width: 100%;
+      min-height: 44px;
+      border-radius: 6px;
+      font: inherit;
+    }
+    input { padding: 0 12px; border: 1px solid #aeb9c9; }
+    input:focus { outline: 3px solid #c7dcff; border-color: #3578d4; }
+    button {
+      margin-top: 16px;
+      border: 0;
+      background: #2367c5;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .6; cursor: wait; }
+    #message { min-height: 24px; margin: 16px 0 0; font-weight: 700; }
+    .success { color: #167044; }
+    .error { color: #b3261e; }
+    .link { display: block; margin-top: 20px; color: #2367c5; text-align: center; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Send an OTP</h1>
+    <p>Enter your email address and we will send a one-time password.</p>
+
+    <form id="otp-form">
+      <label for="email">Email address</label>
+      <input id="email" name="email" type="email" autocomplete="email" required>
+      <button id="send-button" type="submit">Send OTP</button>
+    </form>
+
+    <p id="message" role="status" aria-live="polite"></p>
+    <a class="link" href="/verify.html">Already have an OTP? Verify it</a>
+  </main>
+
+  <script>
+    const form = document.querySelector('#otp-form');
+    const emailInput = document.querySelector('#email');
+    const button = document.querySelector('#send-button');
+    const message = document.querySelector('#message');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      button.disabled = true;
+      message.className = '';
+      message.textContent = 'Sending...';
+
+      try {
+        const response = await fetch('/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailInput.value.trim() })
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.error || (response.status === 429
+            ? 'Too many requests. Please try again later.'
+            : 'Unable to send OTP.'));
+        }
+
+        message.className = 'success';
+        message.textContent = data.message || 'OTP sent. Check the simulated email output.';
+      } catch (error) {
+        message.className = 'error';
+        message.textContent = error.name === 'TypeError'
+          ? 'Network error. Check that the server is running and try again.'
+          : error.message;
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
